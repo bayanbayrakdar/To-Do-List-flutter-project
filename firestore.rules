@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // users/{userId}: only the owner can read/write their own document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // users/{userId}/tasks/{taskId}: only the owner
+      match /tasks/{taskId} {
+        allow read, delete: if request.auth != null && request.auth.uid == userId;
+        allow create, update: if request.auth != null
+                              && request.auth.uid == userId
+                              && request.resource.data.title is string
+                              && request.resource.data.title.size() > 0;
+      }
+    }
+  }
+}
